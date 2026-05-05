@@ -6,6 +6,9 @@ description: >-
   Pacific, and answers free-form GitHub questions on @mention.
 category: product
 
+example:
+  prompt: "What shipped today?"
+
 story:
   hero: "Know what shipped without scrolling GitHub."
   subheadline: >-
