@@ -1,0 +1,76 @@
+name: github-digests
+display_name: GitHub Digests
+description: >-
+  Posts an end-of-day digest of what shipped — merged PRs, deploys,
+  and customer-visible changes — to Slack every weekday at 5:30pm
+  Pacific, and answers free-form GitHub questions on @mention.
+category: product
+
+story:
+  hero: "Know what shipped without scrolling GitHub."
+  subheadline: >-
+    End of each day it summarizes merges, deploys, and customer-visible
+    changes — what shipped, what broke, what users said.
+  steps:
+    - role: trigger
+      title: "5:30pm hits."
+      body: >-
+        The cron fires Monday through Friday. No release notes to chase,
+        no PR list to scroll.
+    - role: action
+      title: "It scans today's merges and deploys."
+      body: >-
+        Pulls every PR merged today across the configured repos,
+        classifies customer-visible vs internal, and flags failed
+        deploys and reverts.
+      catalog: github-mcp
+    - role: outcome
+      title: "What shipped, what broke, what users said."
+      body: >-
+        A scannable Slack digest with PR numbers linked, internal work
+        collapsed to a count, broken builds called out up top.
+      catalog: slack
+
+connectors:
+  - catalog: github-mcp
+    description: >-
+      The GitHub MCP server, authenticated with a Personal Access
+      Token. The agent reads merged PRs, issues, workflow runs, and
+      releases for the configured repos. Writes (open issue, comment
+      on PR, label) only happen when a Slack user explicitly asks
+      and confirms.
+    slot_descriptions:
+      GITHUB_PERSONAL_ACCESS_TOKEN: >-
+        Create a Personal Access Token at
+        https://github.com/settings/tokens. A fine-grained PAT scoped
+        to the specific repos in `REPOS` is preferred — grant
+        read-only access to Pull Requests, Issues, and Contents.
+        A classic PAT with the `repo` scope also works. The token is
+        stored as a secret and never echoed in Slack.
+    ui:
+      headline: "Connect GitHub with a token."
+      blurb: >-
+        Paste a Personal Access Token. A fine-grained PAT with
+        read-only Pull Requests, Issues, and Contents access to the
+        repos you want summarized is the safest setup.
+      done_note: "GitHub connected"
+
+channels:
+  - catalog: slack
+    description: >-
+      The agent gets its own Slack bot. Invite it to whichever
+      channels you want the EOD digest in, and to any other channel
+      where teammates should be able to @mention it for ad-hoc
+      GitHub questions.
+    ui:
+      headline: "Give GitHub Digests a Slack bot."
+      blurb: >-
+        The agent posts the EOD digest to every channel you invite
+        it to. Invite it to one focused channel, or several —
+        whatever matches how your team works.
+      done_note: "Bot ready — invite it to a channel"
+
+  - type: cron
+    cron: "30 17 * * 1-5"
+    timezone: America/Los_Angeles
+    description: "Fires the end-of-day shipped digest at 5:30pm Pacific, Monday through Friday."
